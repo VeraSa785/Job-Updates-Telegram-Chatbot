@@ -5,6 +5,7 @@ import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 import requests
+from HTMLParser import HTMLParser
 
 load_dotenv()
 CHAT_BOT_TOKEN = os.getenv("CHAT_BOT_TOKEN")
@@ -20,6 +21,10 @@ dp = Dispatcher(bot, storage=storage)
 
 # URL to monitor
 url = "https://www.smartsheet.com/careers-list?location=Bellevue%2C+WA%2C+USA&department=Engineering+-+Developers&position="
+
+# # Add HTML job parser
+# parser = HTMLParser(url)
+# job_data = parser.parse_html()
 
 # Dictionary to store chat IDs and their associated URLs
 chat_ids_urls = {}
@@ -64,6 +69,29 @@ async def check_website():
             logging.error(f"An error occurred while checking the website: {str(e)}")
 
             await asyncio.sleep(100)
+
+@dp.message_handler(commands=['getdata'])
+async def get_data_command(message: types.Message):
+
+    parser = HTMLParser(url)
+    data = parser.parse_html()
+
+    if data:
+        message_text = ""
+        for item in data:
+            job_title = item['Job Title']
+            department = item['Department']
+            location = item['Location']
+            job_link = item['Job Link']
+            item_text = f"*🟦 Job Title: {job_title}\n*" \
+                        f"Department: {department}\n" \
+                        f"Location: {location}\n" \
+                        f"Job Link: {job_link}\n\n"
+            message_text += item_text
+
+        await message.answer(message_text, parse_mode=types.ParseMode.MARKDOWN)
+    else:
+        await message.answer("Failed to retrieve data.")
 
 
 async def start_bot():
