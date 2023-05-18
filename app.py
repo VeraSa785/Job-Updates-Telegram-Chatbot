@@ -58,12 +58,12 @@ async def check_website():
                 # Update the HTML content for the chat ID
                 chat_ids_urls[chat_id] = html_content
 
-                await asyncio.sleep(3600)
+                await asyncio.sleep(300)
 
         except Exception as e:
             logging.error(f"An error occurred while checking the website: {str(e)}")
 
-            await asyncio.sleep(300)
+            await asyncio.sleep(100)
 
 
 async def start_bot():
