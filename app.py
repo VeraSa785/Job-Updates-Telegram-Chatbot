@@ -29,6 +29,20 @@ url = "https://www.smartsheet.com/careers-list?location=Bellevue%2C+WA%2C+USA&de
 # Dictionary to store chat IDs and their associated URLs
 chat_ids_urls = {}
 
+# List of commands for the menu
+menu_commands = [
+    types.KeyboardButton('/getupdate', 'This command allows you to receive all current positions'),
+    types.KeyboardButton('/getdata'),
+]
+
+# Create the menu button
+menu_button = types.KeyboardButton('Menu')
+
+# Create the keyboard markup with the menu button and commands
+markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+markup.add(*menu_commands)
+markup.add(menu_button)
+
 @dp.message_handler(commands=['start'])
 async def start(message: types.Message):
     # Get the chat ID
@@ -55,10 +69,7 @@ async def check_website():
                 # Check for changes in the HTML content
                 if previous_html is not None and html_content != previous_html:
                     # Changes detected, send a message to the chat ID
-                    await bot.send_message(chat_id= chat_id, text="Website has been updated!")
-
-                else:
-                    await bot.send_message(chat_id= chat_id, text="No updates")
+                    await bot.send_message(chat_id= chat_id, text="🟩 Website has been updated!")
 
                 # Update the HTML content for the chat ID
                 chat_ids_urls[chat_id] = html_content
@@ -69,6 +80,16 @@ async def check_website():
             logging.error(f"An error occurred while checking the website: {str(e)}")
 
             await asyncio.sleep(100)
+
+@dp.message_handler(commands=['getupdate'])
+async def get_update(message: types.Message):
+    # Fetch the HTML content of the web page
+    response = requests.get(url)
+    response.raise_for_status()
+    html_content = response.text
+
+    # Send the HTML content as a message to the user
+    await bot.send_message(chat_id=message.chat.id, text="html_content")
 
 @dp.message_handler(commands=['getdata'])
 async def get_data_command(message: types.Message):
