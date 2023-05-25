@@ -1,6 +1,9 @@
 import requests
 from bs4 import BeautifulSoup
 
+# Global list of words to exclude
+exclusion_words = ["Senior", "Software Engineer II"]
+
 class HTMLParser:
     def __init__(self, url):
         self.url = url
@@ -24,6 +27,9 @@ class HTMLParser:
             department_name = department.get_text(strip=True)
             location_name = location.get_text(strip=True)
 
+            if any(word in job_title for word in exclusion_words):
+                continue
+
             job_dict = {
                 "Job Title": job_title,
                 "Department": department_name,
@@ -33,9 +39,9 @@ class HTMLParser:
 
             job_data.append(job_dict)
 
-        # # Print the job data
-        # for job in job_data:
-        #     print(job)
-        #     print()
+        # Print the job data
+        for job in job_data:
+            print(job)
+            print()
 
         return job_data

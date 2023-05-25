@@ -99,16 +99,18 @@ async def get_data_command(message: types.Message):
 
     if data:
         message_text = ""
+        number_in_order = 1
         for item in data:
             job_title = item['Job Title']
             department = item['Department']
             location = item['Location']
             job_link = item['Job Link']
-            item_text = f"*🟦 Job Title: {job_title}\n*" \
+            item_text = f"*🟦 {number_in_order}.Job Title: {job_title}\n*" \
                         f"Department: {department}\n" \
                         f"Location: {location}\n" \
                         f"Job Link: {job_link}\n\n"
             message_text += item_text
+            number_in_order += 1
 
         await message.answer(message_text, parse_mode=types.ParseMode.MARKDOWN)
     else:
