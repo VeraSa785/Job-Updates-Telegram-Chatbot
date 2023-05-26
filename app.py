@@ -29,20 +29,6 @@ url = "https://www.smartsheet.com/careers-list?location=Bellevue%2C+WA%2C+USA&de
 # Dictionary to store chat IDs and their associated URLs
 chat_ids_urls = {}
 
-# List of commands for the menu
-menu_commands = [
-    types.KeyboardButton('/getupdate', 'This command allows you to receive all current positions'),
-    types.KeyboardButton('/getdata'),
-]
-
-# Create the menu button
-menu_button = types.KeyboardButton('Menu')
-
-# Create the keyboard markup with the menu button and commands
-markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-markup.add(*menu_commands)
-markup.add(menu_button)
-
 @dp.message_handler(commands=['start'])
 async def start(message: types.Message):
     # Get the chat ID
@@ -68,8 +54,9 @@ async def check_website():
 
                 # Check for changes in the HTML content
                 if previous_html is not None and html_content != previous_html:
+                    image_url = 'https://resourseas.com/wp-content/uploads/2021/01/Job-Openings-we-are-hiring-1.jpg'
                     # Changes detected, send a message to the chat ID
-                    await bot.send_message(chat_id= chat_id, text="🟩 Website has been updated!")
+                    await bot.send_message(chat_id=chat_id, photo=image_url, caption="Website has been updated!")
 
                 # Update the HTML content for the chat ID
                 chat_ids_urls[chat_id] = html_content
@@ -91,13 +78,20 @@ async def get_update(message: types.Message):
     # Send the HTML content as a message to the user
     await bot.send_message(chat_id=message.chat.id, text="html_content")
 
+@dp.message_handler(commands=['send_image'])
+async def send_image(message: types.Message):
+    image_url = 'https://motivationaldiaries.com/wp-content/uploads/2016/05/dontgiveup.jpg'
+    
+    # Send the image to the user
+    await bot.send_photo(chat_id=message.chat.id, photo=image_url, caption='You will succeed 💎')
+
 @dp.message_handler(commands=['getdata'])
 async def get_data_command(message: types.Message):
 
     parser = HTMLParser(url)
     data = parser.parse_html()
 
-    if data:
+    if len(data) > 0:
         message_text = ""
         number_in_order = 1
         for item in data:
@@ -105,16 +99,23 @@ async def get_data_command(message: types.Message):
             department = item['Department']
             location = item['Location']
             job_link = item['Job Link']
-            item_text = f"*🟦 {number_in_order}.Job Title: {job_title}\n*" \
+            item_text = f"*🟦 {number_in_order}. Job Title: {job_title}\n*" \
                         f"Department: {department}\n" \
                         f"Location: {location}\n" \
                         f"Job Link: {job_link}\n\n"
             message_text += item_text
             number_in_order += 1
 
-        await message.answer(message_text, parse_mode=types.ParseMode.MARKDOWN)
+        # Check if message_text exceeds 4096 characters
+        if len(message_text) <= 4096:
+            await message.answer(message_text, parse_mode=types.ParseMode.MARKDOWN)
+        else:
+            # Divide message_text into multiple messages
+            while message_text:
+                await message.answer(message_text[:4096], parse_mode=types.ParseMode.MARKDOWN)
+                message_text = message_text[4096:]
     else:
-        await message.answer("Failed to retrieve data.")
+        await message.answer("Sorry, no available positions for now.")
 
 
 async def start_bot():
