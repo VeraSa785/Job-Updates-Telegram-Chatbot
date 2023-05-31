@@ -53,10 +53,14 @@ async def check_website():
                     current_data = parser.parse_html()
 
                     # Check for changes in the parsed dictionary
-                    if previous_data is not None and current_data != previous_data:
-                        image_url = 'https://resourseas.com/wp-content/uploads/2021/01/Job-Openings-we-are-hiring-1.jpg'
-                        # Changes detected, send a message to the chat ID
-                        await bot.send_message(chat_id=chat_id, photo=image_url, caption="Website has been updated!")
+                    if previous_data is not None:
+                        added_titles = [job['Job Title'] for job in current_data if job not in previous_data]
+                        if added_titles:
+                            image_url = 'https://resourseas.com/wp-content/uploads/2021/01/Job-Openings-we-are-hiring-1.jpg'
+                            added_titles_str = "\n".join(added_titles)
+                            message = f"Website has been updated!\n\nAdded titles:\n{added_titles_str}"
+                            # Changes detected, send a message to the chat ID
+                            await bot.send_message(chat_id=chat_id, photo=image_url, caption=message)
 
                     # Update the parsed dictionary for the chat ID and position
                     data['previous_data'] = current_data
