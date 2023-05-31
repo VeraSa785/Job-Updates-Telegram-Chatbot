@@ -42,31 +42,32 @@ async def start(message: types.Message):
 
 async def check_website():
     while True:
-        try:
-            for chat_id, url in chat_ids_urls.items():
-                # Fetch the HTML content of the web page
-                response = requests.get(url)
-                response.raise_for_status()
-                html_content = response.text
+        try: 
+            for chat_id, data in chat_ids_urls.items():
+                    url = data['url']
+                    position = data['position']
+                    previous_data = data.get('previous_data')
 
-                # Get the previous HTML content for the chat ID
-                previous_html = chat_ids_urls.get(chat_id)
+                    # Fetch the HTML content and parse the dictionary
+                    parser = HTMLParser(url)
+                    current_data = parser.parse_html()
 
-                # Check for changes in the HTML content
-                if previous_html is not None and html_content != previous_html:
-                    image_url = 'https://resourseas.com/wp-content/uploads/2021/01/Job-Openings-we-are-hiring-1.jpg'
-                    # Changes detected, send a message to the chat ID
-                    await bot.send_message(chat_id=chat_id, photo=image_url, caption="Website has been updated!")
+                    # Check for changes in the parsed dictionary
+                    if previous_data is not None and current_data != previous_data:
+                        image_url = 'https://resourseas.com/wp-content/uploads/2021/01/Job-Openings-we-are-hiring-1.jpg'
+                        # Changes detected, send a message to the chat ID
+                        await bot.send_message(chat_id=chat_id, photo=image_url, caption="Website has been updated!")
 
-                # Update the HTML content for the chat ID
-                chat_ids_urls[chat_id] = html_content
+                    # Update the parsed dictionary for the chat ID and position
+                    data['previous_data'] = current_data
+                    chat_ids_urls[chat_id] = data
 
-                await asyncio.sleep(300)
+                    await asyncio.sleep(300)
 
         except Exception as e:
-            logging.error(f"An error occurred while checking the website: {str(e)}")
+                logging.error(f"An error occurred while checking the website: {str(e)}")
 
-            await asyncio.sleep(100)
+                await asyncio.sleep(100)
 
 @dp.message_handler(commands=['getupdate'])
 async def get_update(message: types.Message):
