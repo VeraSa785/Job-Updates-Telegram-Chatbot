@@ -77,6 +77,23 @@ async def send_image(message: types.Message):
 
 @dp.message_handler(commands=['getdata'])
 async def get_data_command(message: types.Message):
+    # Create a custom keyboard with two options: Smartsheet and Remitly
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    keyboard.add('🟦 Smartsheet', '🤝 Remitly')
+
+    # Send the menu message with the custom keyboard
+    await message.answer("Choose a company:", reply_markup=keyboard)
+
+@dp.message_handler(lambda message: message.text in ['🟦 Smartsheet', '🤝 Remitly'])
+async def handle_company_selection(message: types.Message):
+    company = message.text.lower()
+
+    if company == '🟦 smartsheet':
+        url = "https://www.smartsheet.com/careers-list?location=Bellevue%2C+WA%2C+USA&department=Engineering+-+Developers&position="
+    elif company == '🤝 remitly':
+        url = "https://careers.remitly.com/all-open-jobs/?team=engineering"
+    else:
+        return  # Invalid company, do nothing
 
     parser = HTMLParser(url)
     data = parser.parse_html()
@@ -106,6 +123,39 @@ async def get_data_command(message: types.Message):
                 message_text = message_text[4096:]
     else:
         await message.answer("Sorry, no available positions for now.")
+
+
+# @dp.message_handler(commands=['getdata'])
+# async def get_data_command(message: types.Message):
+
+#     parser = HTMLParser(url)
+#     data = parser.parse_html()
+
+#     if len(data) > 0:
+#         message_text = ""
+#         number_in_order = 1
+#         for item in data:
+#             job_title = item['Job Title']
+#             department = item['Department']
+#             location = item['Location']
+#             job_link = item['Job Link']
+#             item_text = f"*🟦 {number_in_order}. Job Title: {job_title}\n*" \
+#                         f"Department: {department}\n" \
+#                         f"Location: {location}\n" \
+#                         f"Job Link: {job_link}\n\n"
+#             message_text += item_text
+#             number_in_order += 1
+
+#         # Check if message_text exceeds 4096 characters
+#         if len(message_text) <= 4096:
+#             await message.answer(message_text, parse_mode=types.ParseMode.MARKDOWN)
+#         else:
+#             # Divide message_text into multiple messages
+#             while message_text:
+#                 await message.answer(message_text[:4096], parse_mode=types.ParseMode.MARKDOWN)
+#                 message_text = message_text[4096:]
+#     else:
+#         await message.answer("Sorry, no available positions for now.")
 
 
 async def start_bot():
