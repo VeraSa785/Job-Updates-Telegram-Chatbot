@@ -39,9 +39,5 @@ class HTMLParser:
 
             job_data.append(job_dict)
 
-        # Print the job data
-        # for job in job_data:
-        #     print(job)
-        #     print()
-
         return job_data
+    

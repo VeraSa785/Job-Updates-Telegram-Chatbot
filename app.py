@@ -22,10 +22,6 @@ dp = Dispatcher(bot, storage=storage)
 # URL to monitor
 url = "https://www.smartsheet.com/careers-list?location=Bellevue%2C+WA%2C+USA&department=Engineering+-+Developers&position="
 
-# # Add HTML job parser
-# parser = HTMLParser(url)
-# job_data = parser.parse_html()
-
 # Dictionary to store chat IDs and their associated URLs
 chat_ids_urls = {}
 
@@ -45,7 +41,6 @@ async def check_website():
         try: 
             for chat_id, data in chat_ids_urls.items():
                     url = data['url']
-                    position = data['position']
                     previous_data = data.get('previous_data')
 
                     # Fetch the HTML content and parse the dictionary
@@ -72,16 +67,6 @@ async def check_website():
                 logging.error(f"An error occurred while checking the website: {str(e)}")
 
                 await asyncio.sleep(100)
-
-@dp.message_handler(commands=['getupdate'])
-async def get_update(message: types.Message):
-    # Fetch the HTML content of the web page
-    response = requests.get(url)
-    response.raise_for_status()
-    html_content = response.text
-
-    # Send the HTML content as a message to the user
-    await bot.send_message(chat_id=message.chat.id, text="html_content")
 
 @dp.message_handler(commands=['send_image'])
 async def send_image(message: types.Message):
