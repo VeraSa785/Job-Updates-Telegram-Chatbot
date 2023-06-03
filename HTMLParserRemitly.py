@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 
-class HTMLremitly:
+class HTMLParserRemitly:
     def __init__(self, url):
         self.url = url
         self.excluded_words = ["Principal", "Senior", "II", "III"]
@@ -53,10 +53,3 @@ class HTMLremitly:
             print("Request failed with status code:", response.status_code)
             return []
 
-# Usage example
-url = "https://careers.remitly.com/all-open-jobs/?team=engineering"
-html_parser = HTMLremitly(url)
-jobs = html_parser.parse_html()
-for job in jobs:
-    print(job)
-    

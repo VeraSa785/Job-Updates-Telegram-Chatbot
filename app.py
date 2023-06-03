@@ -4,8 +4,8 @@ import logging
 import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-import requests
-from HTMLParser import HTMLParser
+from HTMLParserSmartsheet import HTMLParserSmartsheet
+from HTMLParserRemitly import HTMLParserRemitly
 
 load_dotenv()
 CHAT_BOT_TOKEN = os.getenv("CHAT_BOT_TOKEN")
@@ -44,7 +44,7 @@ async def check_website():
                     previous_data = data.get('previous_data')
 
                     # Fetch the HTML content and parse the dictionary
-                    parser = HTMLParser(url)
+                    parser = HTMLParserSmartsheet(url)
                     current_data = parser.parse_html()
 
                     # Check for changes in the parsed dictionary
@@ -90,28 +90,47 @@ async def handle_company_selection(message: types.Message):
 
     if company == '🟦 smartsheet':
         url = "https://www.smartsheet.com/careers-list?location=Bellevue%2C+WA%2C+USA&department=Engineering+-+Developers&position="
+        parser = HTMLParserSmartsheet(url)
+        company_icon = '🟦'
     elif company == '🤝 remitly':
         url = "https://careers.remitly.com/all-open-jobs/?team=engineering"
+        parser = HTMLParserRemitly(url)
+        company_icon = '🤝'
     else:
         return  # Invalid company, do nothing
 
-    parser = HTMLParser(url)
     data = parser.parse_html()
 
     if len(data) > 0:
         message_text = ""
-        number_in_order = 1
-        for item in data:
+        for number_in_order, item in enumerate(data, start=1):
             job_title = item['Job Title']
             department = item['Department']
             location = item['Location']
             job_link = item['Job Link']
-            item_text = f"*🟦 {number_in_order}. Job Title: {job_title}\n*" \
+            item_text = f"*{company_icon} {number_in_order}. Job Title: {job_title}\n*" \
                         f"Department: {department}\n" \
                         f"Location: {location}\n" \
                         f"Job Link: {job_link}\n\n"
             message_text += item_text
-            number_in_order += 1
+        # number_in_order = 1
+        # for item in data:
+        #     job_title = item['Job Title']
+        #     department = item['Department']
+        #     location = item['Location']
+        #     job_link = item['Job Link']
+        #     if company == '🟦 smartsheet':
+        #         item_text = f"*🟦 {number_in_order}. Job Title: {job_title}\n*" \
+        #                     f"Department: {department}\n" \
+        #                     f"Location: {location}\n" \
+        #                     f"Job Link: {job_link}\n\n"
+        #     elif company == '🤝 remitly':
+        #         item_text = f"*🤝 {number_in_order}. Job Title: {job_title}\n*" \
+        #                     f"Department: {department}\n" \
+        #                     f"Location: {location}\n" \
+        #                     f"Job Link: {job_link}\n\n"
+        #     message_text += item_text
+        #     number_in_order += 1
 
         # Check if message_text exceeds 4096 characters
         if len(message_text) <= 4096:
@@ -123,40 +142,6 @@ async def handle_company_selection(message: types.Message):
                 message_text = message_text[4096:]
     else:
         await message.answer("Sorry, no available positions for now.")
-
-
-# @dp.message_handler(commands=['getdata'])
-# async def get_data_command(message: types.Message):
-
-#     parser = HTMLParser(url)
-#     data = parser.parse_html()
-
-#     if len(data) > 0:
-#         message_text = ""
-#         number_in_order = 1
-#         for item in data:
-#             job_title = item['Job Title']
-#             department = item['Department']
-#             location = item['Location']
-#             job_link = item['Job Link']
-#             item_text = f"*🟦 {number_in_order}. Job Title: {job_title}\n*" \
-#                         f"Department: {department}\n" \
-#                         f"Location: {location}\n" \
-#                         f"Job Link: {job_link}\n\n"
-#             message_text += item_text
-#             number_in_order += 1
-
-#         # Check if message_text exceeds 4096 characters
-#         if len(message_text) <= 4096:
-#             await message.answer(message_text, parse_mode=types.ParseMode.MARKDOWN)
-#         else:
-#             # Divide message_text into multiple messages
-#             while message_text:
-#                 await message.answer(message_text[:4096], parse_mode=types.ParseMode.MARKDOWN)
-#                 message_text = message_text[4096:]
-#     else:
-#         await message.answer("Sorry, no available positions for now.")
-
 
 async def start_bot():
     try:
