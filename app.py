@@ -22,7 +22,7 @@ dp = Dispatcher(bot, storage=storage)
 # URL to monitor
 url = "https://www.smartsheet.com/careers-list?location=Bellevue%2C+WA%2C+USA&department=Engineering+-+Developers&position="
 
-# Dictionary to store chat IDs and their associated URLs
+# Dictionary to store chat IDs and their associated URLs and specific HTMLParser classes
 chat_ids_urls = {}
 
 @dp.message_handler(commands=['start'])
@@ -30,21 +30,33 @@ async def start(message: types.Message):
     # Get the chat ID
     chat_id = message.chat.id
 
-    # Add the chat ID to the dictionary with the URL to monitor
-    chat_ids_urls[chat_id] = url
+    # # Add the chat ID to the dictionary with the URL to monitor
+    # chat_ids_urls[chat_id] = url
+
+    # Add to the dictionary URL and HTMLParser class, depending of company.
+    chat_ids_urls[chat_id] = {
+    'smartsheet': {
+        'url': "https://www.smartsheet.com/careers-list?location=Bellevue%2C+WA%2C+USA&department=Engineering+-+Developers&position=",
+        'previous_data': None,
+        'parser': HTMLParserSmartsheet,
+    },
+    'remitly': {
+        'url': "https://careers.remitly.com/all-open-jobs/?team=engineering",
+        'previous_data': None,
+        'parser': HTMLParserRemitly,
+    }
+}
 
     await message.reply("Monitoring has started!")
-
 
 async def check_website():
     while True:
         try: 
             for chat_id, data in chat_ids_urls.items():
-                    url = data['url']
-                    previous_data = data.get('previous_data')
-
-                    # Fetch the HTML content and parse the dictionary
-                    parser = HTMLParserSmartsheet(url)
+                for company, company_data in data.items():
+                    url = company_data['url']
+                    previous_data = company_data.get('previous_data')
+                    parser = company_data['parser'](url)
                     current_data = parser.parse_html()
 
                     # Check for changes in the parsed dictionary
@@ -58,8 +70,8 @@ async def check_website():
                             await bot.send_message(chat_id=chat_id, photo=image_url, caption=message)
 
                     # Update the parsed dictionary for the chat ID and position
-                    data['previous_data'] = current_data
-                    chat_ids_urls[chat_id] = data
+                    company_data['previous_data'] = current_data
+                    data[company] = company_data
 
                     await asyncio.sleep(300)
 
@@ -113,24 +125,6 @@ async def handle_company_selection(message: types.Message):
                         f"Location: {location}\n" \
                         f"Job Link: {job_link}\n\n"
             message_text += item_text
-        # number_in_order = 1
-        # for item in data:
-        #     job_title = item['Job Title']
-        #     department = item['Department']
-        #     location = item['Location']
-        #     job_link = item['Job Link']
-        #     if company == '🟦 smartsheet':
-        #         item_text = f"*🟦 {number_in_order}. Job Title: {job_title}\n*" \
-        #                     f"Department: {department}\n" \
-        #                     f"Location: {location}\n" \
-        #                     f"Job Link: {job_link}\n\n"
-        #     elif company == '🤝 remitly':
-        #         item_text = f"*🤝 {number_in_order}. Job Title: {job_title}\n*" \
-        #                     f"Department: {department}\n" \
-        #                     f"Location: {location}\n" \
-        #                     f"Job Link: {job_link}\n\n"
-        #     message_text += item_text
-        #     number_in_order += 1
 
         # Check if message_text exceeds 4096 characters
         if len(message_text) <= 4096:
